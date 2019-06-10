@@ -1,0 +1,61 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+  
+.header-spacer {
+    flex: 1 1 auto;
+}
+
+.header-icon {
+    padding: 0 14px;
+}
+
+.header-user-name {
+    padding: 0 14px;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #72bcd4;
+    z-index: 100;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #c1e1ec;
+    z-index: 100;
+}
+
+.app-container {
+    position: absolute !important;
+    top: 60px;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+}
+
+.app-content {
+    padding: 20px;
+}
+
+.app-sidenav {
+    width: 400px;
+    background-color: #e8f4f8;
+}
+
+.info-card mat-card-content {
+    text-align: center;
+}
+
+table {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+}
