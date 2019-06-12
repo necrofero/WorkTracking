@@ -7,10 +7,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     flex: 1 1 auto;
 }
 
-.header-icon {
-    padding: 0 14px;
-}
-
 .header-user-name {
     padding: 0 14px;
 }
@@ -50,12 +46,71 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     background-color: #e8f4f8;
 }
 
-.info-card mat-card-content {
+.login-card {
+    margin: 30px 180px 0 180px;
+}
+
+.login-fields-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+}
+  
+.login-fields-container > * {
+    width: 100%;
+}
+
+.login-button-container {
+    text-align: right;
+    padding: 30px;
+}
+
+.admin-sidenav-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+}
+  
+.admin-sidenav-container > * {
+    width: 100%;
+}
+
+.header-synced {
+    font-size: 16px;
+    background-color: lightgreen;
+    margin-bottom: 20px;
+}
+
+.header-not-synced {
+    font-size: 16px;
+    background-color: lightcoral;
+    margin-bottom: 20px;
+}
+
+.info-card .mat-card-header-text {
+    margin: 0;
+}
+
+.centered {
     text-align: center;
 }
 
+.num-downloads {
+    padding: 15px 0 15px 0;
+}
+
 table {
-    margin-top: 20px;
+    margin-top: 40px;
     margin-bottom: 20px;
     width: 100%;
+}
+
+.sync-ok {
+    color: green;
+}
+
+.sync-ko {
+    color: orange;
 }
