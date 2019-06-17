@@ -15,13 +15,13 @@
       <div *ngIf="user.isAdmin">
         <div class="admin-sidenav-container">
           <mat-form-field>
-            <input matInput [matDatepicker]="startPicker" placeholder="Inicio" [formControl]="start_date">
+            <input matInput [matDatepicker]="startPicker" placeholder="Inicio" [formControl]="start_date" (dateChange)="onSelect(null)">
             <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
           </mat-form-field>
           <br/>
           <mat-form-field>
-            <input matInput [matDatepicker]="endPicker" placeholder="Fin" [formControl]="end_date">
+            <input matInput [matDatepicker]="endPicker" placeholder="Fin" [formControl]="end_date" (dateChange)="onSelect(null)">
             <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
           </mat-form-field>

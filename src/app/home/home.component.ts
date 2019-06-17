@@ -3,6 +3,7 @@ import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DATE_LOCALE, DateAdapter } from '@angular/material/core';
+import { DataService } from '../services/data.service';
 
 @Component({
   selector: 'app-home',
@@ -39,7 +40,7 @@ export class HomeComponent implements OnInit {
     record_type: new FormControl('', [Validators.required])
   });
 
-  constructor(private router: Router, private userService: UserService, private _adapter: DateAdapter<any>) {
+  constructor(private router: Router, private userService: UserService, private dataService: DataService, private _adapter: DateAdapter<any>) {
     this._adapter.setLocale('es-ES');
   }
 
@@ -50,6 +51,19 @@ export class HomeComponent implements OnInit {
     this.end_date = new FormControl(new Date(date));
     date.setMonth(date.getMonth() - 1)
     this.start_date = new FormControl(new Date(date));
+    this.getData();
+  }
+
+  getData() {
+    if (this.user.isAdmin) {
+      console.log('GET_ADMIN', this.start_date.value, this.end_date.value);
+      this.dataService.getRecords(this.start_date.value, this.end_date.value).subscribe(records => {
+        console.log(records);
+      });
+    }
+    else {
+      console.log('GET_EMPLOYEE', this.selected_date);
+    }
   }
 
   logout() {
@@ -72,8 +86,10 @@ export class HomeComponent implements OnInit {
   }
 
   onSelect(event) {
-    console.log(event);
-    this.selected_date= event;
+    if (event) {
+      this.selected_date= event;
+    }
+    this.getData();
   }
 
   getSelectedDate() {

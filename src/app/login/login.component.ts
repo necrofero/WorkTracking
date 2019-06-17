@@ -44,21 +44,14 @@ export class LoginComponent implements OnInit {
 
   onSubmit() {
     if (!this.loginForm.invalid) {
-      // this.userService.login(this.loginForm.get('user_name').value, this.loginForm.get('user_password').value).subscribe(user => {
-      //   if (user) {
-      //     this.router.navigate(['']);
-      //   }
-      //   else {
-      //     this.loginError = true;
-      //   }
-      // });
-      let user = this.userService.login(this.loginForm.get('user_name').value, this.loginForm.get('user_password').value);
-      if (user) {
-        this.router.navigate(['']);
-      }
-      else {
-        this.loginError = true;
-      }
+      this.userService.login(this.loginForm.get('user_name').value, this.loginForm.get('user_password').value).subscribe(validUser => {
+        if (validUser) {
+          this.router.navigate(['']);
+        }
+        else {
+          this.loginError = true;
+        }
+      });
     }
 
   }
