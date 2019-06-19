@@ -7,7 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatFormFieldModule, MatInputModule, MatTableModule, MatToolbarModule, MatIconModule, MatSidenavModule, MatDatepickerModule, MatNativeDateModule, MatCardModule, MatButtonModule } from '@angular/material';
+import { MatSelectModule, MatFormFieldModule, MatInputModule, MatTableModule, MatToolbarModule, MatIconModule, MatSidenavModule, MatDatepickerModule, MatNativeDateModule, MatCardModule, MatButtonModule } from '@angular/material';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { NoAuthGuard } from './guards/noauth.guard';
@@ -33,6 +33,7 @@ import { HomeComponent } from './home/home.component';
     ReactiveFormsModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    MatSelectModule,
     MatToolbarModule,
     MatIconModule,
     MatSidenavModule,

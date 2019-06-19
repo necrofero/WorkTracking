@@ -81,7 +81,7 @@
       </mat-card>
 
       <!-- Contenido para el empleado -->
-      <mat-toolbar *ngIf="!user.isAdmin" class="header-synced">
+      <mat-toolbar *ngIf="!user.isAdmin && syncedWeek" class="header-synced">
         <span>{{getWeek()}}</span>
         <span class="header-spacer"></span>
         <span class="header-user-name">Validar información</span>
@@ -89,7 +89,7 @@
           <mat-icon>check_circle_outline</mat-icon>
         </button>
       </mat-toolbar>
-      <mat-toolbar *ngIf="!user.isAdmin" class="header-not-synced">
+      <mat-toolbar *ngIf="!user.isAdmin && !syncedWeek" class="header-not-synced">
         <span>{{getWeek()}}</span>
         <span class="header-spacer"></span>
         <span class="header-user-name">Sincronizar información</span>
@@ -103,23 +103,27 @@
           <mat-card-subtitle>{{getSelectedDate()}}</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <div class="centered">
+          <div class="centered" *ngIf="!syncedWeek">
             <div class="num-downloads">Nuevo registro</div>
             <button mat-fab color="primary" (click)="newRecord()">
               <mat-icon>add</mat-icon>
             </button>
             <div *ngIf="editingRecord">
               <form [formGroup]="recordForm" (ngSubmit)="onSubmit()">
-                <div class="lllllogin-fields-container">
+                <div>
                     <mat-form-field>
-                      <input matInput placeholder="Hora" formControlName="record_time" required>
+                      <input matInput type="time" placeholder="Hora" formControlName="record_time" required>
                     </mat-form-field>
                     <br/>
                     <mat-form-field>
-                      <input matInput placeholder="Tipo" formControlName="record_type" required>
+                      <mat-label>Tipo</mat-label>
+                      <mat-select formControlName="record_type" required>
+                          <mat-option value="entrance">Entrada</mat-option>
+                          <mat-option value="exit">Salida</mat-option>
+                      </mat-select>
                     </mat-form-field>
                   </div>
-                  <div class="llllllogin-button-container">
+                  <div>
                       <button mat-raised-button color="primary" type="submit">Añadir</button>
                       &nbsp;
                       <button mat-raised-button type="button" (click)="cancelRecord()">Cancelar</button>
@@ -154,7 +158,7 @@
             <ng-container matColumnDef="delete">
               <th mat-header-cell *matHeaderCellDef>Eliminar</th>
               <td mat-cell *matCellDef="let element">
-                <button mat-mini-fab color="warn" (click)="ddd">
+                <button mat-mini-fab color="warn" (click)="delete(element.id)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>

@@ -89,6 +89,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     margin-bottom: 20px;
 }
 
+.info-card {
+    margin-bottom: 60px;
+}
+
 .info-card .mat-card-header-text {
     margin: 0;
 }

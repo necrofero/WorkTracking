@@ -19,25 +19,17 @@ export class HomeComponent implements OnInit {
   public start_date = null;
   public end_date = null;
   public selected_date = null;
-  public records = 645;
+  public records = 0;
   public editingRecord = false;
+  public syncedWeek = false;
 
-  public dataSource = [
-    {date: '05/06/2019', time: '10:00h', type: 'Entrada', employee: 'Óscar Piqueras', synced: true},
-    {date: '05/07/2019', time: '11:00h', type: 'Entrada', employee: 'Óscar Piqueras', synced: true},
-    {date: '05/08/2019', time: '12:00h', type: 'Salida', employee: 'Óscar Piqueras', synced: false},
-    {date: '05/09/2019', time: '13:00h', type: 'Entrada', employee: 'Óscar Piqueras', synced: true},
-    {date: '05/10/2019', time: '14:00h', type: 'Entrada', employee: 'Óscar Piqueras', synced: true},
-    {date: '15/06/2019', time: '15:00h', type: 'Entrada', employee: 'Óscar Piqueras', synced: false},
-    {date: '16/06/2019', time: '16:00h', type: 'Salida', employee: 'Óscar Piqueras', synced: true},
-    {date: '17/06/2019', time: '17:00h', type: 'Entrada', employee: 'Óscar Piqueras', synced: true}
-  ];
+  public dataSource = [];
   public adminDisplayedColumns: string[] = ['date', 'time', 'type', 'employee', 'synced'];
   public employeeDisplayedColumns: string[] = ['time', 'type', 'synced', 'edit', 'delete'];
 
   public recordForm: FormGroup = new FormGroup({
     record_time: new FormControl('', [Validators.required]),
-    record_type: new FormControl('', [Validators.required])
+    record_type: new FormControl('entrance', [Validators.required])
   });
 
   constructor(private router: Router, private userService: UserService, private dataService: DataService, private _adapter: DateAdapter<any>) {
@@ -51,18 +43,46 @@ export class HomeComponent implements OnInit {
     this.end_date = new FormControl(new Date(date));
     date.setMonth(date.getMonth() - 1)
     this.start_date = new FormControl(new Date(date));
+    this.recordForm.get("record_time").setValue("10:10");
     this.getData();
   }
 
   getData() {
-    if (this.user.isAdmin) {
-      console.log('GET_ADMIN', this.start_date.value, this.end_date.value);
-      this.dataService.getRecords(this.start_date.value, this.end_date.value).subscribe(records => {
-        console.log(records);
-      });
+    let start = this.start_date.value;
+    let end = this.end_date.value;
+    let employee = '_';
+    if (!this.user.isAdmin) {
+      start = end = this.selected_date;
+      employee = this.user.id;
     }
-    else {
-      console.log('GET_EMPLOYEE', this.selected_date);
+    this.dataService.getRecords(start, end, employee).subscribe(records => {
+      let newData = [];
+      records.forEach(record => {
+        newData.push(this.formatRecord(record))
+      });
+      this.dataSource = newData;
+      this.records = this.dataSource.length;
+      if (!this.user.isAdmin) {
+        // Synced week
+        this.syncedWeek = true;
+        if (this.syncedWeek) {
+          this.employeeDisplayedColumns = ['time', 'type', 'synced'];
+        }
+        else {
+          this.employeeDisplayedColumns = ['time', 'type', 'synced', 'edit', 'delete'];
+        }
+      }
+    });
+  }
+
+  formatRecord(record) {
+    return {
+      id: record.id,
+      date: (new Date(record.dateTime)).toLocaleDateString('es-ES'),
+      time: (new Date(record.dateTime)).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}),
+      type: record.type == 'entrance' ? 'Entrada' : 'Salida',
+      employee: record.employeeName,
+      synced: record.synced
     }
   }
 
@@ -74,7 +94,22 @@ export class HomeComponent implements OnInit {
   }
 
   csv() {
-    alert('Descargando');
+    let csv = 'Fecha,Hora,Tipo,Empleado';
+    this.dataSource.forEach(record => {
+      let csv_line = [];
+      csv_line.push(record.date);
+      csv_line.push(record.time);
+      csv_line.push(record.type);
+      csv_line.push(record.employee);
+      csv = csv + '\n' + csv_line.join(',');
+    });
+    var filename = 'work_tracking.csv';
+    csv = 'data:text/csv;charset=utf-8,' + csv;
+    var data = encodeURI(csv);
+    var link = document.createElement('a');
+    link.setAttribute('href', data);
+    link.setAttribute('download', filename);
+    link.click();
   }
 
   getPeriodMessage() {
@@ -117,5 +152,36 @@ export class HomeComponent implements OnInit {
   cancelRecord() {
     this.editingRecord = false;
   }
+
+  onSubmit() {
+    if (!this.recordForm.invalid) {
+      let onejan = new Date(this.selected_date.getFullYear(), 0, 1);
+      let week = Math.ceil( (((this.selected_date.valueOf() - onejan.valueOf()) / 86400000) + onejan.getDay() + 1) / 7 );
+      let dateTime = new Date(this.selected_date);
+      let splitTime = this.recordForm.get('record_time').value.split(':');
+      dateTime.setHours(splitTime[0]);
+      dateTime.setMinutes(splitTime[1]);
+      let newRecord = {
+        id: '',
+        employeeId: this.user.id,
+        employeeName: this.user.name + ' ' + this.user.surname,
+        dateTime: dateTime,
+        type: this.recordForm.get('record_type').value,
+        week: week,
+        synced: false
+      }
+      this.dataService.insertRecord(newRecord).subscribe(record => {
+        this.getData();
+      });
+    }
+  }
+
+  delete(id) {
+    if (confirm("¿Realmente quieres eliminar el registro?")) {
+      this.dataService.deleteRecord(id).subscribe(result => {
+        this.getData();
+      });
+    }
+}
 
 }
