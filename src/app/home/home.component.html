@@ -88,6 +88,9 @@
         <button mat-icon-button (click)="validate()">
           <mat-icon>check_circle_outline</mat-icon>
         </button>
+        <button mat-icon-button (click)="viewTx()">
+          <mat-icon>visibility</mat-icon>
+         </button>
       </mat-toolbar>
       <mat-toolbar *ngIf="!user.isAdmin && !syncedWeek" class="header-not-synced">
         <span>{{getWeek()}}</span>

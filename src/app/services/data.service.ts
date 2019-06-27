@@ -11,9 +11,9 @@ export class DataService {
 
   constructor(private http: HttpClient, private configService: ConfigService) { }
 
-  getRecords(start: Date, end: Date, employee: string) : Observable<any> {
-    const formatted_start = `${start.getDate()}_${start.getMonth() + 1}_${start.getFullYear()}`;
-    const formatted_end = `${end.getDate()}_${end.getMonth() + 1}_${end.getFullYear()}`;
+  getRecords(start: any, end: any, employee: string) : Observable<any> {
+    const formatted_start = `${start.date()}_${start.month() + 1}_${start.year()}`;
+    const formatted_end = `${end.date()}_${end.month() + 1}_${end.year()}`;
     return this.http.get<any>(`${this.configService.getEndPoint()}/record/${formatted_start}/${formatted_end}/${employee}`)
       .pipe(map(record => {
         return record;
@@ -21,6 +21,7 @@ export class DataService {
   }
 
   insertRecord(record: any) : Observable<any> {
+    console.log(record);
     return this.http.post<any>(`${this.configService.getEndPoint()}/record/`, record)
       .pipe(map(record => {
         return record;
@@ -29,6 +30,20 @@ export class DataService {
 
   deleteRecord(recordId: string) : Observable<any> {
     return this.http.delete<any>(`${this.configService.getEndPoint()}/record/${recordId}`);
+  }
+
+  getSyncedData(year: number, week: number, employee: string) : Observable<any> {
+    return this.http.get<any>(`${this.configService.getEndPoint()}/sync/${year}/${week}/${employee}`)
+      .pipe(map(result => {
+        return result;
+    }));
+  }
+
+  setSyncedData(year: number, week: number, employee: string) : Observable<any> {
+    return this.http.post<any>(`${this.configService.getEndPoint()}/sync/${year}/${week}/${employee}`, null)
+      .pipe(map(result => {
+        return result;
+    }));
   }
 
 }

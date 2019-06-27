@@ -2,15 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MAT_DATE_LOCALE, DateAdapter } from '@angular/material/core';
+import { MAT_MOMENT_DATE_FORMATS, MomentDateAdapter } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { DataService } from '../services/data.service';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
   providers: [
-    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' }
+    { provide: MAT_DATE_LOCALE, useValue: 'es-ES' },
+    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
+    { provide: MAT_DATE_FORMATS, useValue: MAT_MOMENT_DATE_FORMATS }
   ]
 })
 export class HomeComponent implements OnInit {
@@ -22,6 +26,7 @@ export class HomeComponent implements OnInit {
   public records = 0;
   public editingRecord = false;
   public syncedWeek = false;
+  public tx = '';
 
   public dataSource = [];
   public adminDisplayedColumns: string[] = ['date', 'time', 'type', 'employee', 'synced'];
@@ -38,12 +43,11 @@ export class HomeComponent implements OnInit {
 
   ngOnInit() {
     this.user = this.userService.getUser();
-    this.selected_date = new Date();
-    let date = new Date();
-    this.end_date = new FormControl(new Date(date));
-    date.setMonth(date.getMonth() - 1)
-    this.start_date = new FormControl(new Date(date));
-    this.recordForm.get("record_time").setValue("10:10");
+    this.selected_date = moment();
+    let date = moment()
+    this.end_date = new FormControl(moment(date));
+    date.month(date.month() - 1)
+    this.start_date = new FormControl(moment(date));
     this.getData();
   }
 
@@ -63,14 +67,16 @@ export class HomeComponent implements OnInit {
       this.dataSource = newData;
       this.records = this.dataSource.length;
       if (!this.user.isAdmin) {
-        // Synced week
-        this.syncedWeek = true;
-        if (this.syncedWeek) {
-          this.employeeDisplayedColumns = ['time', 'type', 'synced'];
-        }
-        else {
-          this.employeeDisplayedColumns = ['time', 'type', 'synced', 'edit', 'delete'];
-        }
+        this.dataService.getSyncedData(this.selected_date.year(), this.selected_date.week(), employee).subscribe(result => {
+          this.syncedWeek = (result.id !== '');
+          this.tx = result.tx;
+          if (this.syncedWeek) {
+            this.employeeDisplayedColumns = ['time', 'type', 'synced'];
+          }
+          else {
+            this.employeeDisplayedColumns = ['time', 'type', 'synced', 'edit', 'delete'];
+          }
+        });
       }
     });
   }
@@ -113,7 +119,7 @@ export class HomeComponent implements OnInit {
   }
 
   getPeriodMessage() {
-    return 'Del ' + this.start_date.value.toLocaleDateString('es-ES') + ' al ' + this.end_date.value.toLocaleDateString('es-ES');
+    return 'Del ' + this.start_date.value.format('D/M/YYYY') + ' al ' + this.end_date.value.format('D/M/YYYY');
   }
 
   getRecordsMessage() {
@@ -128,21 +134,47 @@ export class HomeComponent implements OnInit {
   }
 
   getSelectedDate() {
-    return this.selected_date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    return this.selected_date.format('D/M/YYYY');
   }
 
   getWeek() {
-    let onejan = new Date(this.selected_date.getFullYear(), 0, 1);
-    let week = Math.ceil( (((this.selected_date.valueOf() - onejan.valueOf()) / 86400000) + onejan.getDay() + 1) / 7 );
-    return 'Semana ' + week + ' de ' + this.selected_date.getFullYear();
+    return 'Semana ' + this.selected_date.week() + ' de ' + this.selected_date.year();
   }
 
   validate() {
-    alert('Validar');
+    let start = moment(this.selected_date).startOf('week');
+    let end = moment(this.selected_date).endOf('week');
+    console.log(start.format());
+    console.log(end.format());
+    this.dataService.getRecords(start, end, this.user.id).subscribe(records => {
+      let csv = 'Fecha,Hora,Tipo,Empleado';
+      records.forEach(record => {
+        let formattedRecord = this.formatRecord(record);
+        let csv_line = [];
+        csv_line.push(formattedRecord.date);
+        csv_line.push(formattedRecord.time);
+        csv_line.push(formattedRecord.type);
+        csv_line.push(formattedRecord.employee);
+        csv = csv + '\n' + csv_line.join(',');
+      });
+      var filename = 'work_tracking.csv';
+      csv = 'data:text/csv;charset=utf-8,' + csv;
+      var data = encodeURI(csv);
+      var link = document.createElement('a');
+      link.setAttribute('href', data);
+      link.setAttribute('download', filename);
+      link.click();
+    });
   }
 
   sync() {
-    alert('Sincronizar');
+    if (confirm('¿Realmente quieres sincronizar los registros? Ya no podrán ser modificados.')) {
+      this.dataService.setSyncedData(this.selected_date.year(), this.selected_date.week(), this.user.id).subscribe(result => {
+        this.syncedWeek = true;
+        this.employeeDisplayedColumns = ['time', 'type', 'synced'];
+        this.tx = result.value.tx;
+      });
+    }
   }
 
   newRecord() {
@@ -155,19 +187,17 @@ export class HomeComponent implements OnInit {
 
   onSubmit() {
     if (!this.recordForm.invalid) {
-      let onejan = new Date(this.selected_date.getFullYear(), 0, 1);
-      let week = Math.ceil( (((this.selected_date.valueOf() - onejan.valueOf()) / 86400000) + onejan.getDay() + 1) / 7 );
-      let dateTime = new Date(this.selected_date);
+      let dateTime = moment(this.selected_date);
       let splitTime = this.recordForm.get('record_time').value.split(':');
-      dateTime.setHours(splitTime[0]);
-      dateTime.setMinutes(splitTime[1]);
+      dateTime.hour(splitTime[0]);
+      dateTime.minutes(splitTime[1]);
       let newRecord = {
         id: '',
         employeeId: this.user.id,
         employeeName: this.user.name + ' ' + this.user.surname,
-        dateTime: dateTime,
+        dateTime: dateTime.format('YYYY-MM-DDTHH:mm'),
         type: this.recordForm.get('record_type').value,
-        week: week,
+        week: this.selected_date.week(),
         synced: false
       }
       this.dataService.insertRecord(newRecord).subscribe(record => {
@@ -182,6 +212,10 @@ export class HomeComponent implements OnInit {
         this.getData();
       });
     }
-}
+  }
+
+  viewTx() {
+    window.open(`https://ropsten.etherscan.io/tx/${this.tx}`, '_blank');
+  }
 
 }
