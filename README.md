@@ -1,27 +1,23 @@
 # WorkTracking
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.0.1.
+El proyecto está realizado utiliznado Angular.
 
-## Development server
+Para la instalación del framework y de sus dependencias, es necdsario tener instalado [Node.js](https://nodejs.org/es/) y ejecitar el comando:
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+`nmp install`
 
-## Code scaffolding
+Una vez instalado, se puede arrancar el servidor de desarrollo con el comando:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+`ng serve`
 
-## Build
+y navegando a `thhp://localhost:4200`.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Se puede generar la versión para producción con el comando:
 
-## Running unit tests
+`ng build --prod`
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Configuración
 
-## Running end-to-end tests
+En el servicio `ConfigService` se encuentra la única variable de configuración:
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+* `END_POINT`: Endpoint de la API del servidor.
